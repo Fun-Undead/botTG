@@ -1,11 +1,14 @@
 from weather import WeatherData
-# Подключаем модуль для Телеграма
 import telebot
+from dotenv import dotenv_values
+from pathlib import Path
+
 from telebot import types
 from test_volga import parsePage
 
-# Указываем токен
-bot = telebot.TeleBot('tokenTG')
+_ENV_ARG = dotenv_values(Path(".env"))
+
+bot = telebot.TeleBot(_ENV_ARG["TG_TOKEN"])
 
 coordinates = {
     "south": ['53.16247', '50.18027'],
@@ -14,18 +17,13 @@ coordinates = {
 }
 
 
-# Метод, который получает сообщения и обрабатывает их
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    # Если написали «Привет»
     if message.text == "Привет":
-        # Пишем приветствие
         bot.send_message(message.from_user.id, "Привет, сейчас я расскажу тебе погоду на сегодня.")
-        # Готовим кнопки
         keyboard = types.InlineKeyboardMarkup()
-        # По очереди готовим текст и обработчик для каждого знака зодиака
+
         key_south = types.InlineKeyboardButton(text='Южный мост', callback_data='south')
-        # И добавляем кнопку на экран
         keyboard.add(key_south)
         key_dirty = types.InlineKeyboardButton(text='Грязный', callback_data='dirty')
         keyboard.add(key_dirty)
@@ -33,15 +31,16 @@ def get_text_messages(message):
         keyboard.add(key_danube)
         key_water_level = types.InlineKeyboardButton(text='Уровень и температура воды', callback_data='water_lvl')
         keyboard.add(key_water_level)
-        # Показываем все кнопки сразу и пишем сообщение о выборе
+
         bot.send_message(message.from_user.id, text='Выбери место', reply_markup=keyboard)
+
     elif message.text == "/help":
         bot.send_message(message.from_user.id, "Напиши Привет")
+
     else:
         bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши /help.")
 
 
-# Обработчик нажатий на кнопки
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
     weather_list = ["danube", "south", "dirty"]
@@ -49,6 +48,7 @@ def callback_worker(call):
         try:
             data = WeatherData(coordinates[call.data])
             object_weather = data.get_weather_data_now()
+
             weather_status = data.search_weather_by_id(object_weather)
             temp = data.get_temp(object_weather)
             pressure = data.get_pressure(object_weather)
@@ -58,6 +58,7 @@ def callback_worker(call):
             sunrise_and_sunset_times = data.get_sunrise_and_sunset_times(object_weather)
             rain_3h = data.get_rain_3h(object_weather)
             snow_3h = data.get_snow_3h(object_weather)
+
             msg = f'{weather_status}\nТемпература воздуха {temp[0]}°C, ощущается как {temp[1]}°C\nДавление {pressure}\n' \
                   f'Видимость {visibility} метров\nВлажность {humidity}%\n' \
                   f'Скорость ветра {speed_wind[0]} м\с. Порывы до {speed_wind[1]} м\с. Направление {speed_wind[2]}\n' \
@@ -69,6 +70,7 @@ def callback_worker(call):
 
     elif call.data == "water_lvl":
         msg = 'Дата            Уровень воды\n'
+
         water_lvl_list = parsePage()
         for i in water_lvl_list:
             for j in i:
@@ -77,9 +79,7 @@ def callback_worker(call):
                 else:
                     msg += f"{str(j)}\n"
 
-        # Отправляем текст в Телеграм
     bot.send_message(call.message.chat.id, msg)
 
 
-# Запускаем постоянный опрос бота в Телеграме
 bot.polling(none_stop=True, interval=0, timeout=123)

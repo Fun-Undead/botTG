@@ -2,8 +2,13 @@ import json
 import requests
 import time
 
+from dotenv import dotenv_values
+from pathlib import Path
+
+_ENV_ARG = dotenv_values(Path(".env"))
+
 class WeatherData(object):
-    api_key = 'api_key'
+    api_key = _ENV_ARG["API_KEY"]
 
     def __init__(self, lat_lot: list):
         self.lat = lat_lot[0]
@@ -59,27 +64,35 @@ class WeatherData(object):
         if 0 <= deg_wind_degrees <= 22.5 or 337.5 <= deg_wind_degrees < 360:
             direction_wind = "C"
             wind_list.append(direction_wind)
+
         elif 22.5 < deg_wind_degrees < 67.5:
             direction_wind = "СВ"
             wind_list.append(direction_wind)
+
         elif 67.5 <= deg_wind_degrees <= 112.5:
             direction_wind = "В"
             wind_list.append(direction_wind)
+
         elif 112.5 < deg_wind_degrees < 157.5:
             direction_wind = "ЮВ"
             wind_list.append(direction_wind)
+
         elif 157.5 <= deg_wind_degrees <= 202.5:
             direction_wind = "Ю"
             wind_list.append(direction_wind)
+
         elif 202.5 < deg_wind_degrees < 247.5:
             direction_wind = "ЮЗ"
             wind_list.append(direction_wind)
+
         elif 247.5 <= deg_wind_degrees <= 292.5:
             direction_wind = "З"
             wind_list.append(direction_wind)
+
         elif 292.5 < deg_wind_degrees < 337.5:
             direction_wind = "СЗ"
             wind_list.append(direction_wind)
+
         else:
             direction_wind = "Направление не определенно"
             wind_list.append(direction_wind)
@@ -110,4 +123,3 @@ class WeatherData(object):
             return f"{snow_last_3h} мм"
         except:
             return "снега нет"
-
