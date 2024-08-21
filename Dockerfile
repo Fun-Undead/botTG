@@ -8,7 +8,9 @@ COPY . /botPython/
 
 RUN apt-get update
 
-RUN ln -fs /usr/share/zoneinfo/Europe/Samara /etc/localtime
+RUN apt-get install -y tzdata \
+&&  ln -fs /usr/share/zoneinfo/Europe/Samara /etc/localtime \
+&&  dpkg-reconfigure --frontend noninteractive tzdata
 
 RUN apt-get install -y python3.10
 RUN apt install -y python3-pip
